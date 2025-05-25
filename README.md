@@ -1,6 +1,5 @@
 # Windows 11 → 10 Transformation Toolkit
 
-![Menu Preview](https://via.placeholder.com/400x200.png?text=Script+Menu+Preview)
 
 A comprehensive batch script that modifies Windows 11 registry settings to recreate the Windows 10 user experience. Includes safety features and reversal options.
 
