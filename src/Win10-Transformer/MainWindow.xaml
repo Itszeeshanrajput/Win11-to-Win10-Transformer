@@ -13,6 +13,26 @@
         </Grid.RowDefinitions>
 
         <ListView Name="TweaksListView" Grid.Row="0">
+            <ListView.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate>
+                                        <Expander IsExpanded="True">
+                                            <Expander.Header>
+                                                <TextBlock FontWeight="Bold" FontSize="14" Text="{Binding Name}"/>
+                                            </Expander.Header>
+                                            <ItemsPresenter/>
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </ListView.GroupStyle>
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="40">
@@ -22,7 +42,7 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="Tweak" Width="200" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Tweak" Width="200" DisplayMemberBinding="{Binding DisplayName}"/>
                     <GridViewColumn Header="Description" Width="500" DisplayMemberBinding="{Binding Description}"/>
                 </GridView>
             </ListView.View>
