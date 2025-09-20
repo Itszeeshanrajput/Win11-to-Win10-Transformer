@@ -5,6 +5,9 @@ using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Windows.Data;
 
 namespace Win10_Transformer
 {
@@ -19,7 +22,13 @@ namespace Win10_Transformer
         {
             InitializeComponent();
             _tweakManager = new TweakManager();
-            TweaksListView.ItemsSource = _tweakManager.Tweaks;
+
+            // Set up the grouped view
+            var view = new ListCollectionView(_tweakManager.Tweaks);
+            view.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+            TweaksListView.ItemsSource = view;
+
+            Loaded += MainWindow_Loaded;
 
             ApplyButton.Click += ApplyButton_Click;
             RevertButton.Click += RevertButton_Click;
@@ -29,6 +38,30 @@ namespace Win10_Transformer
             LoadProfileButton.Click += LoadProfileButton_Click;
 
             Logger.Log("Application started.");
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            await CheckForUpdates();
+        }
+
+        private async Task CheckForUpdates()
+        {
+            Logger.Log("Checking for updates.");
+            var updateResult = await UpdateChecker.CheckForUpdatesAsync();
+            if (updateResult.IsUpdateAvailable)
+            {
+                var message = $"A new version ({updateResult.LatestVersion}) is available! Would you like to go to the download page?";
+                var result = MessageBox.Show(message, "Update Available", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                if (result == MessageBoxResult.Yes)
+                {
+                    var repoUrl = System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttribute<System.Reflection.AssemblyMetadataAttribute>()?.Value;
+                    if (repoUrl != null)
+                    {
+                        Process.Start(new ProcessStartInfo($"{repoUrl}/releases/latest") { UseShellExecute = true });
+                    }
+                }
+            }
         }
 
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
@@ -43,7 +76,6 @@ namespace Win10_Transformer
             foreach (var tweak in selectedTweaks)
             {
                 tweak.Apply();
-                Logger.Log($"Applied tweak: {tweak.Name}");
             }
 
             MessageBox.Show($"{selectedTweaks.Count} tweak(s) applied successfully. A restart of Explorer or the system may be required.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -61,7 +93,6 @@ namespace Win10_Transformer
             foreach (var tweak in selectedTweaks)
             {
                 tweak.Revert();
-                Logger.Log($"Reverted tweak: {tweak.Name}");
             }
 
             MessageBox.Show($"{selectedTweaks.Count} tweak(s) reverted successfully. A restart of Explorer or the system may be required.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -126,7 +157,7 @@ namespace Win10_Transformer
                     {
                         tweak.IsApplied = selectedTweakNames.Contains(tweak.Name);
                     }
-                    TweaksListView.Items.Refresh();
+                    (TweaksListView.ItemsSource as ICollectionView)?.Refresh();
                     Logger.Log($"Profile loaded from {dialog.FileName}");
                     MessageBox.Show("Profile loaded successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }

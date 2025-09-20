@@ -10,13 +10,37 @@ namespace Win10_Transformer.Core
         public Action Revert { get; set; }
         public bool IsApplied { get; set; }
 
+        public string Category
+        {
+            get
+            {
+                if (Name.Contains(':'))
+                {
+                    return Name.Split(':')[0];
+                }
+                return "General";
+            }
+        }
+
+        public string DisplayName
+        {
+            get
+            {
+                if (Name.Contains(':'))
+                {
+                    return Name.Split(':')[1].Trim();
+                }
+                return Name;
+            }
+        }
+
         public Tweak(string name, string description, Action apply, Action revert)
         {
             Name = name;
             Description = description;
             Apply = apply;
             Revert = revert;
-            IsApplied = false; // We can add logic to check the current state later
+            IsApplied = false;
         }
     }
 }
