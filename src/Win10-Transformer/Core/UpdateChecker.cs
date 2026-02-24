@@ -9,23 +9,37 @@ namespace Win10_Transformer.Core
     public class UpdateCheckResult
     {
         public bool IsUpdateAvailable { get; set; }
-        public string LatestVersion { get; set; }
+        public string LatestVersion { get; set; } = string.Empty;
     }
 
     public class GitHubRelease
     {
-        public string tag_name { get; set; }
+        public string tag_name { get; set; } = string.Empty;
     }
 
     public static class UpdateChecker
     {
-        private static readonly string RepositoryUrl = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyMetadataAttribute>()?.Value ?? "your-username/your-repo";
+        private const string DefaultRepo = "your-username/your-repo";
         private static readonly string CurrentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
 
         public static async Task<UpdateCheckResult> CheckForUpdatesAsync()
         {
-            var result = new UpdateCheckResult { IsUpdateAvailable = false };
-            var ownerAndRepo = new Uri(RepositoryUrl).AbsolutePath.Trim('/');
+            var result = new UpdateCheckResult { IsUpdateAvailable = false, LatestVersion = "Unknown" };
+
+            string ownerAndRepo = DefaultRepo;
+            try
+            {
+                // Try to get repo from assembly metadata if available
+                var metadata = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyMetadataAttribute>();
+                var repoUrl = System.Linq.Enumerable.FirstOrDefault(metadata, m => m.Key == "RepositoryUrl")?.Value;
+
+                if (!string.IsNullOrEmpty(repoUrl) && Uri.TryCreate(repoUrl, UriKind.Absolute, out var uri))
+                {
+                    ownerAndRepo = uri.AbsolutePath.Trim('/');
+                }
+            }
+            catch { /* Fallback to default */ }
+
             var requestUri = $"https://api.github.com/repos/{ownerAndRepo}/releases/latest";
 
             try

@@ -10,6 +10,61 @@ namespace Win10_Transformer.Core
     public static class RegistryManager
     {
         /// <summary>
+        /// Gets a value from the Windows Registry.
+        /// </summary>
+        public static object? GetValue(string keyName, string valueName)
+        {
+            try
+            {
+                return Registry.GetValue(keyName, valueName, null);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.Log($"Error reading registry value '{valueName}' from '{keyName}': {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Checks if a registry key exists.
+        /// </summary>
+        public static bool KeyExists(string keyName)
+        {
+            try
+            {
+                var (hive, subKeyPath) = ParseKeyName(keyName);
+                if (hive == null) return false;
+
+                using (var key = hive.OpenSubKey(subKeyPath))
+                {
+                    return key != null;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Creates a registry key.
+        /// </summary>
+        public static void CreateKey(string keyName)
+        {
+            try
+            {
+                var (hive, subKeyPath) = ParseKeyName(keyName);
+                if (hive == null) return;
+                hive.CreateSubKey(subKeyPath);
+                Logger.Log($"Created registry key '{keyName}'.");
+            }
+            catch (System.Exception ex)
+            {
+                Logger.Log($"Error creating registry key: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Sets a value in the Windows Registry. The hive (e.g., HKEY_CURRENT_USER) is parsed from the key name.
         /// </summary>
         public static void SetValue(string keyName, string valueName, object value, RegistryValueKind kind)

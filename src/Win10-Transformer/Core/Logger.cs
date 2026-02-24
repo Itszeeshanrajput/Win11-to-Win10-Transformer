@@ -11,12 +11,19 @@ namespace Win10_Transformer.Core
         {
             try
             {
+                var directory = Path.GetDirectoryName(logFilePath);
+                if (directory != null && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
                 var logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}";
                 File.AppendAllText(logFilePath, logMessage);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Ignore logging errors
+                // Can't log the error about logging, but we can try to output to debug
+                System.Diagnostics.Debug.WriteLine($"Failed to log: {ex.Message}");
             }
         }
     }
