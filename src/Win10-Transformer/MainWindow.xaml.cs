@@ -1,6 +1,8 @@
+using System;
 using System.Windows;
 using Win10_Transformer.Core;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Win32;
 using System.IO;
 using System.Text.Json;
@@ -8,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Windows.Data;
+using System.ComponentModel;
 
 namespace Win10_Transformer
 {
@@ -36,6 +39,8 @@ namespace Win10_Transformer
             RestartExplorerButton.Click += RestartExplorerButton_Click;
             SaveProfileButton.Click += SaveProfileButton_Click;
             LoadProfileButton.Click += LoadProfileButton_Click;
+            SelectAllButton.Click += SelectAllButton_Click;
+            DeselectAllButton.Click += DeselectAllButton_Click;
 
             Logger.Log("Application started.");
         }
@@ -55,10 +60,16 @@ namespace Win10_Transformer
                 var result = MessageBox.Show(message, "Update Available", MessageBoxButton.YesNo, MessageBoxImage.Information);
                 if (result == MessageBoxResult.Yes)
                 {
-                    var repoUrl = System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttribute<System.Reflection.AssemblyMetadataAttribute>()?.Value;
-                    if (repoUrl != null)
+                    var metadata = System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttributes<System.Reflection.AssemblyMetadataAttribute>();
+                    var repoUrl = metadata.FirstOrDefault(m => m.Key == "RepositoryUrl")?.Value ?? "https://github.com/your-username/your-repo";
+
+                    try
                     {
                         Process.Start(new ProcessStartInfo($"{repoUrl}/releases/latest") { UseShellExecute = true });
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"Error opening update URL: {ex.Message}");
                     }
                 }
             }
@@ -76,6 +87,7 @@ namespace Win10_Transformer
             foreach (var tweak in selectedTweaks)
             {
                 tweak.Apply();
+                tweak.RefreshStatus();
             }
 
             MessageBox.Show($"{selectedTweaks.Count} tweak(s) applied successfully. A restart of Explorer or the system may be required.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -93,6 +105,7 @@ namespace Win10_Transformer
             foreach (var tweak in selectedTweaks)
             {
                 tweak.Revert();
+                tweak.RefreshStatus();
             }
 
             MessageBox.Show($"{selectedTweaks.Count} tweak(s) reverted successfully. A restart of Explorer or the system may be required.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -161,6 +174,22 @@ namespace Win10_Transformer
                     Logger.Log($"Profile loaded from {dialog.FileName}");
                     MessageBox.Show("Profile loaded successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
+            }
+        }
+
+        private void SelectAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var tweak in _tweakManager.Tweaks)
+            {
+                tweak.IsApplied = true;
+            }
+        }
+
+        private void DeselectAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var tweak in _tweakManager.Tweaks)
+            {
+                tweak.IsApplied = false;
             }
         }
     }
