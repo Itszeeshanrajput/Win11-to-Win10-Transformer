@@ -44,7 +44,7 @@ To build the application from source, you will need:
 ```bash
 # Clone the repository
 git clone https://github.com/Itszeeshanrajput/Win11-to-Win10-Transformer.git
-cd your-repo/src
+cd Win11-to-Win10-Transformer/src
 
 # Build the project
 dotnet build --configuration Release
