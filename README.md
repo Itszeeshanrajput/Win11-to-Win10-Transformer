@@ -43,7 +43,7 @@ To build the application from source, you will need:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/your-repo.git
+git clone [https://github.com/your-username/your-repo.git](https://github.com/Itszeeshanrajput/Win11-to-Win10-Transformer.git)t
 cd your-repo/src
 
 # Build the project
